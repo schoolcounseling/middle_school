@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>학부모 상담 일정 안내</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.0/NanumSquareRound.css">
+  <style>
+    * { box-sizing: border-box; font-family: 'NanumSquareRound', sans-serif; }
+    body { background-color: #f0f5ff; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .container { background: #ffffff; padding: 28px; border-radius: 20px; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.1); max-width: 480px; width: 100%; }
+    .header { text-align: center; margin-bottom: 20px; }
+    .header h2 { color: #1e3a8a; margin: 0 0 6px 0; font-size: 22px; }
+    .header p { color: #64748b; font-size: 13px; margin: 0; }
+    .tabs { display: flex; gap: 6px; margin-bottom: 20px; background: #eff6ff; padding: 4px; border-radius: 12px; }
+    .tab-btn { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 8px; cursor: pointer; font-weight: bold; color: #3b82f6; transition: all 0.2s; }
+    .tab-btn.active { background: #2563eb; color: white; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .form-group { margin-bottom: 14px; }
+    label { display: block; margin-bottom: 6px; font-weight: 700; color: #334155; font-size: 14px; }
+    input, select, textarea { width: 100%; padding: 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+    input:focus, select:focus, textarea:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+    .btn-primary { width: 100%; padding: 14px; background-color: #2563eb; color: white; border: none; border-radius: 10px; font-size: 15px; cursor: pointer; font-weight: 700; margin-top: 8px; transition: background-color 0.2s; }
+    .btn-primary:hover { background-color: #1d4ed8; }
+    .btn-success { background-color: #059669; }
+    .btn-success:hover { background-color: #047857; }
+    .result-card { margin-top: 20px; padding: 18px; border-radius: 14px; background-color: #eff6ff; border: 1.5px solid #bfdbfe; display: none; }
+    .result-card h3 { margin: 0 0 10px 0; color: #1e40af; font-size: 17px; }
+    .info-row { margin-bottom: 8px; font-size: 14px; color: #1e293b; }
+    .survey-box { margin-top: 16px; padding-top: 14px; border-top: 1px dashed #93c5fd; }
+    .survey-title { font-weight: bold; color: #1e3a8a; font-size: 14px; margin-bottom: 10px; }
+    .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+    .checkbox-item { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #334155; cursor: pointer; }
+    .checkbox-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: #2563eb; }
+    .error-msg { margin-top: 15px; padding: 12px; border-radius: 10px; background-color: #fef2f2; border: 1px solid #fecaca; color: #dc2626; font-size: 14px; display: none; text-align: center; }
+    .admin-list { margin-top: 10px; max-height: 250px; overflow-y: auto; }
+    .admin-item { padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; font-size: 13px; }
+    .admin-item-header { display: flex; justify-content: space-between; align-items: center; }
+    .admin-item button { background: #ef4444; color: white; border: none; border-radius: 6px; padding: 4px 8px; cursor: pointer; }
+    .section-title { margin-top: 22px; margin-bottom: 10px; color: #1e3a8a; font-size: 15px; font-weight: bold; border-bottom: 2px solid #eff6ff; padding-bottom: 6px; }
+    .submitted-memo { background: #ffffff; padding: 6px 10px; border-radius: 6px; border: 1px dashed #cbd5e1; margin-top: 6px; font-size: 12px; color: #475569; }
+    .loading-spinner { text-align: center; color: #2563eb; font-weight: bold; font-size: 14px; margin-top: 15px; display: none; }
+    
+    /* 반 선택 필터 스타일 */
+    .filter-box { background: #eff6ff; padding: 10px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #bfdbfe; }
+    .filter-box label { margin-bottom: 4px; color: #1e40af; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h2>🏫 학부모 상담 일정 안내</h2>
+    <p>학생의 반, 번호, 이름을 입력하여 일정을 확인하세요.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('parent')">학부모 조회</button>
+    <button class="tab-btn" onclick="switchTab('admin')">선생님 관리자</button>
+  </div>
+
+  <!-- 1. 학부모 조회 탭 -->
+  <div id="parentTab" class="tab-content active">
+    <div class="form-group">
+      <label for="classNum">반</label>
+      <input type="number" id="classNum" placeholder="예: 3 (1~15반)">
+    </div>
+    <div class="form-group">
+      <label for="studentNum">번호</label>
+      <input type="number" id="studentNum" placeholder="예: 15">
+    </div>
+    <div class="form-group">
+      <label for="studentName">학생 이름</label>
+      <input type="text" id="studentName" placeholder="예: 홍길동">
+    </div>
+    <button class="btn-primary" onclick="searchCounseling()">상담 일정 조회하기</button>
+
+    <div id="loadingBox" class="loading-spinner">⏳ 실시간 정보를 불러오는 중입니다...</div>
+    <div id="resultBox" class="result-card"></div>
+    <div id="errorBox" class="error-msg"></div>
+  </div>
+
+  <!-- 2. 선생님 관리자 탭 -->
+  <div id="adminTab" class="tab-content">
+    <div id="loginSection">
+      <div class="form-group">
+        <label for="adminPw">관리자 비밀번호</label>
+        <input type="password" id="adminPw" placeholder="비밀번호 입력">
+      </div>
+      <button class="btn-primary" onclick="loginAdmin()">관리자 로그인</button>
+    </div>
+
+    <div id="adminSection" style="display: none;">
+      <!-- 반 필터 선택 기능 -->
+      <div class="filter-box">
+        <label for="adminClassFilter">🔍 조회할 반 선택:</label>
+        <select id="adminClassFilter" onchange="filterAdminView()">
+          <option value="all">전체 반 보기 (1~15반)</option>
+          <option value="1">1반</option>
+          <option value="2">2반</option>
+          <option value="3">3반</option>
+          <option value="4">4반</option>
+          <option value="5">5반</option>
+          <option value="6">6반</option>
+          <option value="7">7반</option>
+          <option value="8">8반</option>
+          <option value="9">9반</option>
+          <option value="10">10반</option>
+          <option value="11">11반</option>
+          <option value="12">12반</option>
+          <option value="13">13반</option>
+          <option value="14">14반</option>
+          <option value="15">15반</option>
+        </select>
+      </div>
+
+      <!-- [1] 제출된 학부모 안건 확인 -->
+      <div class="section-title">📬 1. 학부모 제출 안건 확인</div>
+      <div id="adminSubmissionList" class="admin-list"></div>
+
+      <!-- [2] 상담 일정 관리 -->
+      <div class="section-title">📅 2. 신규 상담 일정 등록</div>
+      <div class="form-group">
+        <input type="number" id="newClass" placeholder="반 입력 (1~15)">
+      </div>
+      <div class="form-group"><input type="number" id="newNum" placeholder="번호 (예: 15)"></div>
+      <div class="form-group"><input type="text" id="newName" placeholder="학생 이름 (예: 홍길동)"></div>
+      <div class="form-group"><input type="text" id="newTime" placeholder="상담 시간 (예: 9월 15일(화) 14:00~14:20)"></div>
+      <div class="form-group">
+        <select id="newType">
+          <option value="대면 상담">대면 상담</option>
+          <option value="전화 상담">전화 상담</option>
+          <option value="화상 상담 (Zoom)">화상 상담 (Zoom)</option>
+        </select>
+      </div>
+      <button class="btn-primary btn-success" onclick="addStudentData()">일정 저장하기</button>
+
+      <div class="section-title">📋 등록된 학생 목록</div>
+      <div id="adminStudentList" class="admin-list"></div>
+
+      <!-- [3] 안건(체크박스) 항목 관리 -->
+      <div class="section-title">📝 3. 사전 안건(체크박스) 관리</div>
+      <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+        <input type="text" id="newTopic" placeholder="새 안건 입력 (예: 건강/식습관)">
+        <button class="btn-primary btn-success" style="width: 90px; margin: 0; padding: 10px;" onclick="addTopicData()">추가</button>
+      </div>
+      <div id="adminTopicList" class="admin-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbypg1VFHJuFmpAYtFrAnREGr45wRh0BNpOsW4Oz5eUgXaYwYKqpwQGOKd11R0_h3SfX/exec";
+
+  let dbData = { students: [], topics: [], submissions: [] };
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    if(tab === 'parent') {
+      document.querySelectorAll('.tab-btn')[0].classList.add('active');
+      document.getElementById('parentTab').classList.add('active');
+    } else {
+      document.querySelectorAll('.tab-btn')[1].classList.add('active');
+      document.getElementById('adminTab').classList.add('active');
+    }
+  }
+
+  async function fetchAllData() {
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL);
+      dbData = await response.json();
+    } catch (e) {
+      console.error("데이터 로드 실패", e);
+    }
+  }
+
+  // 학부모 상담 일정 조회 (1~15반 대응)
+  async function searchCounseling() {
+    const classVal = parseInt(document.getElementById('classNum').value);
+    const numVal = parseInt(document.getElementById('studentNum').value);
+    const nameVal = document.getElementById('studentName').value.trim();
+    
+    const resultBox = document.getElementById('resultBox');
+    const errorBox = document.getElementById('errorBox');
+    const loadingBox = document.getElementById('loadingBox');
+    
+    resultBox.style.display = 'none';
+    errorBox.style.display = 'none';
+
+    if (!classVal || !numVal || !nameVal) {
+      errorBox.innerText = '반, 번호, 이름을 모두 정확히 입력해 주세요.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    loadingBox.style.display = 'block';
+    await fetchAllData();
+    loadingBox.style.display = 'none';
+
+    const found = dbData.students.find(s => parseInt(s.classNum) === classVal && parseInt(s.studentNum) === numVal && s.name === nameVal);
+
+    if (found) {
+      let topicsHTML = dbData.topics.length > 0 ? 
+        dbData.topics.map(t => `<label class="checkbox-item"><input type="checkbox" value="${t.topic}"> ${t.topic}</label>`).join('') :
+        '<p style="font-size:12px; color:#94a3b8;">지정된 안건 항목이 없습니다.</p>';
+
+      resultBox.style.display = 'block';
+      resultBox.innerHTML = `
+        <h3>✅ 상담 일정 조회 결과</h3>
+        <div class="info-row"><strong>학생 정보:</strong> ${found.classNum}반 ${found.studentNum}번 ${found.name}</div>
+        <div class="info-row"><strong>상담 시간:</strong> ${found.time}</div>
+        <div class="info-row"><strong>상담 형태:</strong> ${found.type}</div>
+
+        <div class="survey-box">
+          <div class="survey-title">📝 선생님께 미리 알리고 싶은 안건 (선택)</div>
+          <div class="checkbox-group">${topicsHTML}</div>
+          <textarea id="parentMemo" rows="3" placeholder="기타 상담 관련 질문이나 참고사항을 적어주세요."></textarea>
+          <button class="btn-primary" style="margin-top:10px;" onclick="submitSurvey(${found.classNum}, ${found.studentNum}, '${found.name}')">사전 의견 제출하기</button>
+        </div>
+      `;
+    } else {
+      errorBox.innerText = '일치하는 학생 정보가 없습니다. 입력 내용을 확인해 주세요.';
+      errorBox.style.display = 'block';
+    }
+  }
+
+  function submitSurvey(classNum, studentNum, studentName) {
+    const checkedItems = [];
+    document.querySelectorAll('.survey-box input[type="checkbox"]:checked').forEach(cb => checkedItems.push(cb.value));
+    const memo = document.getElementById('parentMemo').value.trim();
+
+    const payload = {
+      action: 'submitSurvey',
+      classNum: classNum,
+      studentNum: studentNum,
+      name: studentName,
+      topics: checkedItems.join(', ') || '선택 없음',
+      memo: memo || '내용 없음'
+    };
+
+    fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(() => {
+      alert(`${studentName} 학생의 사전 상담 안건이 선생님께 제출되었습니다.`);
+    });
+  }
+
+  // 관리자 로그인 (비밀번호: 202600 으로 변경 완료)
+  async function loginAdmin() {
+    if(document.getElementById('adminPw').value === '202600') {
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('adminSection').style.display = 'block';
+      await refreshAdminView();
+    } else {
+      alert('비밀번호가 일치하지 않습니다.');
+    }
+  }
+
+  async function refreshAdminView() {
+    await fetchAllData();
+    filterAdminView();
+    renderTopicList();
+  }
+
+  // 관리자 탭 - 선택된 반 필터링 적용
+  function filterAdminView() {
+    const selectedClass = document.getElementById('adminClassFilter').value;
+    renderSubmissionList(selectedClass);
+    renderAdminList(selectedClass);
+  }
+
+  function renderSubmissionList(selectedClass) {
+    const listEl = document.getElementById('adminSubmissionList');
+    listEl.innerHTML = '';
+    
+    let list = dbData.submissions;
+    if(selectedClass !== 'all') {
+      list = list.filter(item => String(item.classNum) === String(selectedClass));
+    }
+
+    if (list.length === 0) {
+      listEl.innerHTML = '<p style="color:#64748b; font-size:13px;">제출된 학부모 안건이 없습니다.</p>';
+      return;
+    }
+    list.forEach((item) => {
+      const div = document.createElement('div');
+      div.className = 'admin-item';
+      div.innerHTML = `
+        <div class="admin-item-header">
+          <strong>${item.classNum}반 ${item.studentNum}번 ${item.name}</strong>
+          <button onclick="postAction({action:'deleteSubmission', row:${item.row}})">삭제</button>
+        </div>
+        <div style="color:#2563eb; font-weight:bold; margin-top:4px;">📌 안건: ${item.topics}</div>
+        <div class="submitted-memo">💬 메모: ${item.memo}</div>
+        <div style="font-size:11px; color:#94a3b8; margin-top:4px;">제출시각: ${item.date}</div>
+      `;
+      listEl.appendChild(div);
+    });
+  }
+
+  function renderAdminList(selectedClass) {
+    const listEl = document.getElementById('adminStudentList');
+    listEl.innerHTML = '';
+
+    let list = dbData.students;
+    if(selectedClass !== 'all') {
+      list = list.filter(item => String(item.classNum) === String(selectedClass));
+    }
+
+    if(list.length === 0) { listEl.innerHTML = '<p style="color:#64748b; font-size:13px;">등록된 일정이 없습니다.</p>'; return; }
+
+    list.forEach((item) => {
+      const div = document.createElement('div');
+      div.className = 'admin-item';
+      div.innerHTML = `
+        <div class="admin-item-header">
+          <div><strong>${item.classNum}반 ${item.studentNum}번 ${item.name}</strong><br><small style="color:#64748b;">${item.time} | ${item.type}</small></div>
+          <button onclick="postAction({action:'deleteStudent', row:${item.row}})">삭제</button>
+        </div>
+      `;
+      listEl.appendChild(div);
+    });
+  }
+
+  function renderTopicList() {
+    const listEl = document.getElementById('adminTopicList');
+    listEl.innerHTML = '';
+    if(dbData.topics.length === 0) { listEl.innerHTML = '<p style="color:#64748b; font-size:13px;">등록된 안건이 없습니다.</p>'; return; }
+
+    dbData.topics.forEach((topicObj) => {
+      const div = document.createElement('div');
+      div.className = 'admin-item';
+      div.innerHTML = `
+        <div class="admin-item-header">
+          <span>📌 ${topicObj.topic}</span>
+          <button onclick="postAction({action:'deleteTopic', row:${topicObj.row}})">삭제</button>
+        </div>
+      `;
+      listEl.appendChild(div);
+    });
+  }
+
+  function addStudentData() {
+    const c = parseInt(document.getElementById('newClass').value);
+    const n = parseInt(document.getElementById('newNum').value);
+    const name = document.getElementById('newName').value.trim();
+    const time = document.getElementById('newTime').value.trim();
+    const type = document.getElementById('newType').value;
+
+    if(!c || !n || !name || !time) { alert('모든 항목을 입력해 주세요.'); return; }
+
+    postAction({
+      action: 'addStudent',
+      classNum: c,
+      studentNum: n,
+      name: name,
+      time: time,
+      type: type
+    });
+
+    document.getElementById('newClass').value = '';
+    document.getElementById('newNum').value = '';
+    document.getElementById('newName').value = '';
+    document.getElementById('newTime').value = '';
+  }
+
+  function addTopicData() {
+    const topicInput = document.getElementById('newTopic');
+    const topicText = topicInput.value.trim();
+    if(!topicText) { alert('추가할 안건을 입력해 주세요.'); return; }
+
+    postAction({ action: 'addTopic', topic: topicText });
+    topicInput.value = '';
+  }
+
+  function postAction(payload) {
+    fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(() => {
+      setTimeout(refreshAdminView, 1000);
+    });
+  }
+</script>
+
+</body>
+</html>
